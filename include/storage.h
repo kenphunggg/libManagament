@@ -7,7 +7,19 @@
 #include <string>
 
 class Storage {
-private:
+protected:
+    class Borrow {
+    public:
+        std::string br_date;
+        std::string rt_date;
+        std::string phone_nb;
+
+        Borrow* next;
+
+        Borrow(std::string br, std::string rt, std::string p)
+            : br_date(br), rt_date(rt), phone_nb(p), next(nullptr) {};
+    };
+
     class Book {
     public:
         int id;
@@ -17,11 +29,17 @@ private:
 
         Book* left;
         Book* right;
+        Borrow* borrowList;  // Use for storing borrowed book
 
-        Book(int i, const std::string& t, const std::string& a, int q)
-            : id(i), title(t), author(a), quantity(q), left(nullptr), right(nullptr) {}
+        Book(int i, std::string t, std::string a, int q)
+            : id(i),
+              title(t),
+              author(a),
+              quantity(q),
+              left(nullptr),
+              right(nullptr),
+              borrowList(nullptr) {}
     };
-
     Book* root;
 
 public:
@@ -35,7 +53,12 @@ public:
 
     void viewAll() { _viewAll(root); }
 
-    Book* getBookByID(int id) { return _getBookByID(root, id); };
+    void issueBook(int id, std::string _br_date, std::string _rt_date, std::string _phone_nb) {
+        Book* book = getBookByID(id);
+        _issueBook(book, _br_date, _rt_date, _phone_nb);
+        book->quantity -= 1;
+        logger::succeed("Issue book succeeded");
+    }
 
     bool isNull() {
         if (root == nullptr) {
@@ -45,7 +68,7 @@ public:
         }
     }
 
-private:
+protected:
     Book* _addBook(Book* target, int _id, std::string _title, std::string _author, int _quantity) {
         if (target == nullptr) {
             Book* newBook = new Book(_id, _title, _author, _quantity);
@@ -85,6 +108,8 @@ private:
         _viewAll(target->right);
     }
 
+    Book* getBookByID(int id) { return _getBookByID(root, id); };
+
     Book* _getBookByID(Book* target, int id) {
         if (id < target->id) {
             return _getBookByID(target->left, id);
@@ -94,6 +119,25 @@ private:
             return target;
         }
     };
+
+    void _issueBook(Book* targetBook, std::string _br_date, std::string _rt_date,
+                    std::string _phone_nb) {
+        // Create the new record (with error handling)
+        Borrow* newBorrow = new Borrow(_br_date, _rt_date, _phone_nb);
+
+        if (targetBook->borrowList == nullptr) {
+            // List is empty, set the head
+            targetBook->borrowList = newBorrow;
+        } else {
+            // Traverse to the end of the list
+            Borrow* current = targetBook->borrowList;
+            while (current->next != nullptr) {
+                current = current->next;
+            }
+            // Append the new record at the end
+            current->next = newBorrow;
+        }
+    }
 };
 
 #endif  // STORAGE_H // End of header guard

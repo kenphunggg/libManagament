@@ -99,6 +99,54 @@ public:
         }
     }
 
+    void returnBook(int id, std::string _phone_nb) {
+        Book* book = getBookByID(id);
+        int haha;
+        if (book == nullptr) {
+            logger::warning("Cannot found book with given book id, please try again!");
+            return;
+        }
+
+        Borrow* current = book->borrowList;
+        if (current == nullptr) {
+            logger::warning("The book with the given ID is not listed as borrowed - null");
+            return;
+        }
+
+        Borrow* head = book->borrowList;
+        if (head->phone_nb == _phone_nb) {
+            book->borrowList = book->borrowList->next;
+            book->quantity += 1;
+            delete current;
+            logger::succeed("Book returned successfully!");
+            return;
+        }
+
+        Borrow* before;
+        while (current->next != nullptr) {
+            before = current;
+            current = current->next;
+
+            if (current->next == nullptr && current->phone_nb == _phone_nb) {
+                before->next = nullptr;
+                book->quantity += 1;
+                delete current;
+                logger::succeed("Book returned successfully!");
+                return;
+            }
+
+            if (current->phone_nb == _phone_nb) {
+                before->next = current->next;
+                book->quantity += 1;
+                delete current;
+                logger::succeed("Book returned successfully!");
+                return;
+            }
+        }
+
+        logger::warning("The book with the given ID is not listed as borrowed");
+    }
+
     bool isNull() {
         if (root == nullptr) {
             return true;

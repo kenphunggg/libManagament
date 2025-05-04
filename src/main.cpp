@@ -47,7 +47,7 @@ int main() {
         } else if (action == ISSUE_BOOK) {  // --- 4. Issue book ---
             session::issue_book(bookstorage);
         } else if (action == RETURN_BOOK) {  // --- 5. Return book ---
-            /* code */
+            session::return_book(bookstorage);
         } else if (action == EXIT) {  // --- 0. Exit ---
             logger::succeed("End session, see you later!");
             return 0;

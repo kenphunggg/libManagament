@@ -7,9 +7,9 @@
 #include <string>
 
 class Storage {
-protected:
+public:
     class Borrow {
-    public:
+        friend class Storage;
         std::string br_date;
         std::string rt_date;
         std::string phone_nb;
@@ -21,7 +21,7 @@ protected:
     };
 
     class Book {
-    public:
+        friend class Storage;
         int id;
         std::string title;
         std::string author;
@@ -40,9 +40,9 @@ protected:
               right(nullptr),
               borrowList(nullptr) {}
     };
+
     Book* root;
 
-public:
     Storage() : root(nullptr) {};
 
     // ~BinarySearchTree() {};
@@ -53,11 +53,50 @@ public:
 
     void viewAll() { _viewAll(root); }
 
+    void searchBookById(int id) {
+        Book* book = getBookByID(id);
+        if (book == nullptr) {
+            logger::warning("Cannot found book, try again!");
+        } else {
+            logger::succeed("Found successfully!");
+            table::header();
+            table::content(book->id, book->title, book->author, book->quantity);
+        }
+    }
+
+    void searchBookByTitle(std::string title) {
+        Book* book = getBookByTitle(title);
+        if (book == nullptr) {
+            logger::warning("Cannot found book, try again!");
+        } else {
+            logger::succeed("Found successfully!");
+            table::header();
+            table::content(book->id, book->title, book->author, book->quantity);
+        }
+    }
+
+    void searchBookByAuthor(std::string author) {
+        Book* book = getBookByAuthor(author);
+        if (book == nullptr) {
+            logger::warning("Cannot found book, try again!");
+        } else {
+            logger::succeed("Found successfully!");
+            table::header();
+            table::content(book->id, book->title, book->author, book->quantity);
+        }
+    }
+
     void issueBook(int id, std::string _br_date, std::string _rt_date, std::string _phone_nb) {
         Book* book = getBookByID(id);
-        _issueBook(book, _br_date, _rt_date, _phone_nb);
-        book->quantity -= 1;
-        logger::succeed("Issue book succeeded");
+        if (book == nullptr) {
+            logger::warning("No book with given book id in library, please try again!");
+        } else if (book->quantity > 0) {
+            _issueBook(book, _br_date, _rt_date, _phone_nb);
+            book->quantity -= 1;
+            logger::succeed("Issue book succeeded");
+        } else {
+            logger::warning("There are no book left in library, please try later!");
+        }
     }
 
     bool isNull() {
@@ -111,14 +150,58 @@ protected:
     Book* getBookByID(int id) { return _getBookByID(root, id); };
 
     Book* _getBookByID(Book* target, int id) {
-        if (id < target->id) {
-            return _getBookByID(target->left, id);
+        if (target == nullptr) {
+            return nullptr;
+        } else if (id < target->id) {
+            if (target->left == nullptr) {
+                return nullptr;
+            } else {
+                return _getBookByID(target->left, id);
+            }
         } else if (id > target->id) {
-            return _getBookByID(target->right, id);
+            if (target->right == nullptr) {
+                return nullptr;
+            } else {
+                return _getBookByID(target->right, id);
+            }
         } else {
             return target;
         }
     };
+
+    Book* getBookByTitle(std::string title) { return _getBookByTitle(root, title); }
+
+    Book* _getBookByTitle(Book* target, std::string title) {
+        if (target == nullptr) {
+            return nullptr;
+        };
+        if (_getBookByTitle(target->left, title) != nullptr) {
+            return _getBookByTitle(target->left, title);
+        } else if (target->title == title) {
+            return target;
+        } else if (_getBookByTitle(target->right, title) != nullptr) {
+            return _getBookByTitle(target->right, title);
+        } else {
+            return nullptr;
+        }
+    }
+
+    Book* getBookByAuthor(std::string author) { return _getBookByAuthor(root, author); }
+
+    Book* _getBookByAuthor(Book* target, std::string author) {
+        if (target == nullptr) {
+            return nullptr;
+        };
+        if (_getBookByAuthor(target->left, author) != nullptr) {
+            return _getBookByAuthor(target->left, author);
+        } else if (target->author == author) {
+            return target;
+        } else if (_getBookByAuthor(target->right, author) != nullptr) {
+            return _getBookByAuthor(target->right, author);
+        } else {
+            return nullptr;
+        }
+    }
 
     void _issueBook(Book* targetBook, std::string _br_date, std::string _rt_date,
                     std::string _phone_nb) {

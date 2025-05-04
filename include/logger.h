@@ -33,6 +33,8 @@ void succeed(const std::string& text);
 void info(const std::string& text);
 void debug(const std::string& text);
 void critical(const std::string& text);
+void nextSession();
+
 }  // namespace logger
 
 namespace table {

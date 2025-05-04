@@ -43,6 +43,12 @@ void debug(const std::string& text) {
 void critical(const std::string& text) {
     std::cout << Color::FG_BOLD_MAGENTA << text << Color::RESET << std::endl;
 }
+
+void nextSession() {
+    std::cout << "======================================" << std::endl;
+    std::cout << "\n" << "\n" << "\n";
+    std::cout << "======================================" << std::endl;
+};
 }  // namespace logger
 
 namespace table {
@@ -64,10 +70,6 @@ void content(int id, std::string title, std::string author, int quantity) {
               << std::setw(idWidth) << id << std::setw(titleWidth) << title
               << std::setw(authorWidth) << author << std::setw(quantityWidth) << quantity
               << std::endl;
-    // Optionally right-align the quantity
-    // std::cout << std::right << std::setw(quantityWidth) << quantity
-    //           << std::left  // Set back to left for next rows if any
-    //           << std::endl;
 };
 
 }  // namespace table

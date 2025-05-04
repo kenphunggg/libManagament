@@ -14,7 +14,7 @@ EXECUTABLE = main
 
 # --- Files ---
 # List ALL your source (.cpp) files here, including paths
-SOURCES = src/main.cpp src/logger.cpp 
+SOURCES = src/main.cpp src/logger.cpp src/session/1_add_new_book.cpp src/session/2_view_all.cpp src/session/3_search_book.cpp src/session/4_issue_book.cpp src/session/5_return_book.cpp
 
 # List ALL relevant header (.h, .hpp) files here, including paths
 # This ensures recompilation if a header changes.

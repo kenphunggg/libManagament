@@ -3,7 +3,9 @@
 
 #include <logger.h>
 
+#include <fstream>
 #include <iostream>
+#include <limits>
 #include <string>
 
 class Storage {
@@ -159,6 +161,9 @@ protected:
     Book* _addBook(Book* target, int _id, std::string _title, std::string _author, int _quantity) {
         if (target == nullptr) {
             Book* newBook = new Book(_id, _title, _author, _quantity);
+            std::fstream mainFile("data/main.csv", std::ios::app);
+            mainFile << _id << "," << _title << "," << _author << "," << _quantity << std::endl;
+            mainFile.close();
             logger::succeed("Insert successfully!");
             return newBook;
         } else {
@@ -178,6 +183,20 @@ protected:
                     logger::warning("Wrong author, please try again");
                 }
                 if (current->author == _author && current->title == _title) {
+                    std::ifstream mainFile("data/main.csv");
+
+                    logger::warning("LOGGING FILE CONTENT");
+                    std::string line;  // A string variable to hold each line as we read it
+                    bool first = true;
+
+                    while (std::getline(mainFile, line)) {
+                        if (first) {
+                            first = false;
+                            continue;
+                        };
+                        logger::normal(line);
+                    }
+
                     current->quantity += _quantity;
                 };
             }

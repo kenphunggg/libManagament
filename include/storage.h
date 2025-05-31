@@ -5,10 +5,15 @@
 
 #include <fstream>
 #include <iostream>
-#include <limits>
+#include <sstream>
 #include <string>
+#include <vector>
 
 class Storage {
+    std::string main_file;
+    std::string borrow_file;
+    bool init = true;
+
 public:
     class Borrow {
         friend class Storage;
@@ -45,9 +50,11 @@ public:
 
     Book* root;
 
-    Storage() : root(nullptr) {};
-
-    // ~BinarySearchTree() {};
+    Storage(std::string mf, std::string bf) : root(nullptr), main_file(mf), borrow_file(bf) {
+        init_storage();
+        init_borrow();
+        init = false;
+    };
 
     void addBook(int _id, std::string _title, std::string _author, int _quantity) {
         root = _addBook(root, _id, _title, _author, _quantity);
@@ -94,8 +101,11 @@ public:
             logger::warning("No book with given book id in library, please try again!");
         } else if (book->quantity > 0) {
             _issueBook(book, _br_date, _rt_date, _phone_nb);
-            book->quantity -= 1;
-            logger::succeed("Issue book succeeded");
+            if (!init) {
+                book->quantity -= 1;
+            }
+
+            logger::succeed("Issue book successfully!");
         } else {
             logger::warning("There are no book left in library, please try later!");
         }
@@ -158,12 +168,114 @@ public:
     }
 
 protected:
+    void init_storage() {
+        std::fstream _mainfile;
+
+        _mainfile.open(main_file, std::ios::in);
+        if (!_mainfile.is_open()) {
+            logger::warning("Error: Could not open file data/main.csv");
+            return;  // Exit the function if the file can't be opened
+        }
+
+        // Read the Data from the file as string vector
+        std::vector<std::string> row;
+        std::string line, word, temp;
+
+        getline(_mainfile, line);
+        while (std::getline(_mainfile, line)) {
+            row.clear();
+
+            // used for breaking words
+            std::stringstream s(line);
+
+            while (getline(s, word, ',')) {
+                // add all the column data
+                // of a row to a vector
+                row.push_back(word);
+            }
+
+            if (!row.empty()) {
+                // logger::debug(row[0] + row[1] + row[2] + row[3]);
+                addBook(std::stoi(row[0]), row[1], row[2], std::stoi(row[3]));
+            }
+        }
+
+        _mainfile.close();
+    }
+
+    void init_borrow() {
+        std::fstream _mainfile;
+
+        _mainfile.open(borrow_file, std::ios::in);
+        if (!_mainfile.is_open()) {
+            logger::warning("Error: Could not open file data/main.csv");
+            return;  // Exit the function if the file can't be opened
+        }
+
+        // Read the Data from the file as string vector
+        std::vector<std::string> row;
+        std::string line, word, temp;
+
+        getline(_mainfile, line);
+        while (std::getline(_mainfile, line)) {
+            row.clear();
+
+            // used for breaking words
+            std::stringstream s(line);
+
+            while (getline(s, word, ',')) {
+                // add all the column data
+                // of a row to a vector
+                row.push_back(word);
+            }
+
+            if (!row.empty()) {
+                issueBook(std::stoi(row[0]), row[1], row[2], row[3]);
+            }
+        }
+        init = false;
+
+        _mainfile.close();
+    }
+
+    void update_storage() {
+        std::fstream _mainfile;
+        _mainfile.open(main_file, std::ios::out);
+
+        if (!_mainfile.is_open()) {
+            logger::warning("Error: Could not open file data/main.csv");
+            return;  // Exit the function if the file can't be opened
+        }
+
+        update_main_db(_mainfile);
+    }
+
+    void update_main_db(std::fstream& db) {
+        db << "id,title,author,quantity\n";
+        _update_main_db(root, db);
+    }
+
+    void _update_main_db(Book* target, std::fstream& db) {
+        if (target == nullptr) {
+            return;
+        }
+        _update_main_db(target->left, db);
+        db << target->id << "," << target->title << "," << target->author << "," << target->quantity
+           << "\n";
+
+        _update_main_db(target->right, db);
+    }
+
     Book* _addBook(Book* target, int _id, std::string _title, std::string _author, int _quantity) {
         if (target == nullptr) {
             Book* newBook = new Book(_id, _title, _author, _quantity);
-            std::fstream mainFile("data/main.csv", std::ios::app);
-            mainFile << _id << "," << _title << "," << _author << "," << _quantity << std::endl;
-            mainFile.close();
+            if (!init) {
+                std::fstream _mainfile;
+
+                _mainfile.open(main_file, std::ios::out | std::ios::app);
+
+                _mainfile << _id << "," << _title << "," << _author << "," << _quantity << "\n";
+            }
             logger::succeed("Insert successfully!");
             return newBook;
         } else {
@@ -183,21 +295,9 @@ protected:
                     logger::warning("Wrong author, please try again");
                 }
                 if (current->author == _author && current->title == _title) {
-                    std::ifstream mainFile("data/main.csv");
-
-                    logger::warning("LOGGING FILE CONTENT");
-                    std::string line;  // A string variable to hold each line as we read it
-                    bool first = true;
-
-                    while (std::getline(mainFile, line)) {
-                        if (first) {
-                            first = false;
-                            continue;
-                        };
-                        logger::normal(line);
-                    }
-
                     current->quantity += _quantity;
+                    update_storage();
+                    logger::succeed("Update book quantity successfully!");
                 };
             }
         }

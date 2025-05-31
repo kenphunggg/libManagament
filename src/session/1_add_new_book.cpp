@@ -2,6 +2,7 @@
 #include <session.h>
 #include <storage.h>
 
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 

@@ -23,7 +23,11 @@ int main() {
     )" << std::endl;
 
     Storage* bookstorage;
-    bookstorage = new Storage();
+    std::string main_file = "./data/main.csv";
+    std::string borrow_file = "./data/borrow.csv";
+
+    bookstorage = new Storage(main_file, borrow_file);
+    // bookstorage->initStorage();
 
     while (true) {
         logger::info("----- Choose your action -----");

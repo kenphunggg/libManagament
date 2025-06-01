@@ -25,8 +25,9 @@ int main() {
     Storage* bookstorage;
     std::string main_file = "./data/main.csv";
     std::string borrow_file = "./data/borrow.csv";
+    std::string temp_file = "./data/temp.csv";
 
-    bookstorage = new Storage(main_file, borrow_file);
+    bookstorage = new Storage(main_file, borrow_file, temp_file);
     // bookstorage->initStorage();
 
     while (true) {

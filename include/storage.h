@@ -1,17 +1,12 @@
 #ifndef STORAGE_H  // Start of header guard
 #define STORAGE_H
 
-#include <logger.h>
-
-#include <fstream>
-#include <iostream>
-#include <sstream>
 #include <string>
-#include <vector>
 
 class Storage {
     std::string main_file;
     std::string borrow_file;
+    std::string temp_file;
     bool init = true;
 
 public:
@@ -20,11 +15,9 @@ public:
         std::string br_date;
         std::string rt_date;
         std::string phone_nb;
-
         Borrow* next;
 
-        Borrow(std::string br, std::string rt, std::string p)
-            : br_date(br), rt_date(rt), phone_nb(p), next(nullptr) {};
+        Borrow(std::string br, std::string rt, std::string p);
     };
 
     class Book {
@@ -33,361 +26,64 @@ public:
         std::string title;
         std::string author;
         int quantity;
-
         Book* left;
         Book* right;
         Borrow* borrowList;  // Use for storing borrowed book
 
-        Book(int i, std::string t, std::string a, int q)
-            : id(i),
-              title(t),
-              author(a),
-              quantity(q),
-              left(nullptr),
-              right(nullptr),
-              borrowList(nullptr) {}
+        Book(int i, std::string t, std::string a, int q);
     };
 
     Book* root;
 
-    Storage(std::string mf, std::string bf) : root(nullptr), main_file(mf), borrow_file(bf) {
-        init_storage();
-        init_borrow();
-        init = false;
-    };
+    Storage(std::string mf, std::string bf, std::string tf);
 
-    void addBook(int _id, std::string _title, std::string _author, int _quantity) {
-        root = _addBook(root, _id, _title, _author, _quantity);
-    };
+    void addBook(int _id, std::string _title, std::string _author, int _quantity);
 
-    void viewAll() { _viewAll(root); }
+    void viewAll();
 
-    void searchBookById(int id) {
-        Book* book = getBookByID(id);
-        if (book == nullptr) {
-            logger::warning("Cannot found book, try again!");
-        } else {
-            logger::succeed("Found successfully!");
-            table::header();
-            table::content(book->id, book->title, book->author, book->quantity);
-        }
-    }
+    void searchBookById(int id);
 
-    void searchBookByTitle(std::string title) {
-        Book* book = getBookByTitle(title);
-        if (book == nullptr) {
-            logger::warning("Cannot found book, try again!");
-        } else {
-            logger::succeed("Found successfully!");
-            table::header();
-            table::content(book->id, book->title, book->author, book->quantity);
-        }
-    }
+    void searchBookByTitle(std::string title);
 
-    void searchBookByAuthor(std::string author) {
-        Book* book = getBookByAuthor(author);
-        if (book == nullptr) {
-            logger::warning("Cannot found book, try again!");
-        } else {
-            logger::succeed("Found successfully!");
-            table::header();
-            table::content(book->id, book->title, book->author, book->quantity);
-        }
-    }
+    void searchBookByAuthor(std::string author);
 
-    void issueBook(int id, std::string _br_date, std::string _rt_date, std::string _phone_nb) {
-        Book* book = getBookByID(id);
-        if (book == nullptr) {
-            logger::warning("No book with given book id in library, please try again!");
-        } else if (book->quantity > 0) {
-            _issueBook(book, _br_date, _rt_date, _phone_nb);
-            if (!init) {
-                book->quantity -= 1;
-            }
+    void issueBook(int id, std::string _br_date, std::string _rt_date, std::string _phone_nb);
 
-            logger::succeed("Issue book successfully!");
-        } else {
-            logger::warning("There are no book left in library, please try later!");
-        }
-    }
+    void returnBook(int id, std::string _phone_nb);
 
-    void returnBook(int id, std::string _phone_nb) {
-        Book* book = getBookByID(id);
-        int haha;
-        if (book == nullptr) {
-            logger::warning("Cannot found book with given book id, please try again!");
-            return;
-        }
-
-        Borrow* current = book->borrowList;
-        if (current == nullptr) {
-            logger::warning("The book with the given ID is not listed as borrowed - null");
-            return;
-        }
-
-        Borrow* head = book->borrowList;
-        if (head->phone_nb == _phone_nb) {
-            book->borrowList = book->borrowList->next;
-            book->quantity += 1;
-            delete current;
-            logger::succeed("Book returned successfully!");
-            return;
-        }
-
-        Borrow* before;
-        while (current->next != nullptr) {
-            before = current;
-            current = current->next;
-
-            if (current->next == nullptr && current->phone_nb == _phone_nb) {
-                before->next = nullptr;
-                book->quantity += 1;
-                delete current;
-                logger::succeed("Book returned successfully!");
-                return;
-            }
-
-            if (current->phone_nb == _phone_nb) {
-                before->next = current->next;
-                book->quantity += 1;
-                delete current;
-                logger::succeed("Book returned successfully!");
-                return;
-            }
-        }
-
-        logger::warning("The book with the given ID is not listed as borrowed");
-    }
-
-    bool isNull() {
-        if (root == nullptr) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    bool isNull();
 
 protected:
-    void init_storage() {
-        std::fstream _mainfile;
+    void init_storage();
 
-        _mainfile.open(main_file, std::ios::in);
-        if (!_mainfile.is_open()) {
-            logger::warning("Error: Could not open file data/main.csv");
-            return;  // Exit the function if the file can't be opened
-        }
+    void init_borrow();
 
-        // Read the Data from the file as string vector
-        std::vector<std::string> row;
-        std::string line, word, temp;
+    void update_storage();
 
-        getline(_mainfile, line);
-        while (std::getline(_mainfile, line)) {
-            row.clear();
+    void update_main_db(std::fstream& db);
 
-            // used for breaking words
-            std::stringstream s(line);
+    void _update_main_db(Book* target, std::fstream& db);
 
-            while (getline(s, word, ',')) {
-                // add all the column data
-                // of a row to a vector
-                row.push_back(word);
-            }
+    Book* _addBook(Book* target, int _id, std::string _title, std::string _author, int _quantity);
 
-            if (!row.empty()) {
-                // logger::debug(row[0] + row[1] + row[2] + row[3]);
-                addBook(std::stoi(row[0]), row[1], row[2], std::stoi(row[3]));
-            }
-        }
+    void _viewAll(Book* target);
 
-        _mainfile.close();
-    }
+    Book* getBookByID(int id);
 
-    void init_borrow() {
-        std::fstream _mainfile;
+    Book* _getBookByID(Book* target, int id);
 
-        _mainfile.open(borrow_file, std::ios::in);
-        if (!_mainfile.is_open()) {
-            logger::warning("Error: Could not open file data/main.csv");
-            return;  // Exit the function if the file can't be opened
-        }
+    Book* getBookByTitle(std::string title);
 
-        // Read the Data from the file as string vector
-        std::vector<std::string> row;
-        std::string line, word, temp;
+    Book* _getBookByTitle(Book* target, std::string title);
 
-        getline(_mainfile, line);
-        while (std::getline(_mainfile, line)) {
-            row.clear();
+    Book* getBookByAuthor(std::string author);
 
-            // used for breaking words
-            std::stringstream s(line);
-
-            while (getline(s, word, ',')) {
-                // add all the column data
-                // of a row to a vector
-                row.push_back(word);
-            }
-
-            if (!row.empty()) {
-                issueBook(std::stoi(row[0]), row[1], row[2], row[3]);
-            }
-        }
-        init = false;
-
-        _mainfile.close();
-    }
-
-    void update_storage() {
-        std::fstream _mainfile;
-        _mainfile.open(main_file, std::ios::out);
-
-        if (!_mainfile.is_open()) {
-            logger::warning("Error: Could not open file data/main.csv");
-            return;  // Exit the function if the file can't be opened
-        }
-
-        update_main_db(_mainfile);
-    }
-
-    void update_main_db(std::fstream& db) {
-        db << "id,title,author,quantity\n";
-        _update_main_db(root, db);
-    }
-
-    void _update_main_db(Book* target, std::fstream& db) {
-        if (target == nullptr) {
-            return;
-        }
-        _update_main_db(target->left, db);
-        db << target->id << "," << target->title << "," << target->author << "," << target->quantity
-           << "\n";
-
-        _update_main_db(target->right, db);
-    }
-
-    Book* _addBook(Book* target, int _id, std::string _title, std::string _author, int _quantity) {
-        if (target == nullptr) {
-            Book* newBook = new Book(_id, _title, _author, _quantity);
-            if (!init) {
-                std::fstream _mainfile;
-
-                _mainfile.open(main_file, std::ios::out | std::ios::app);
-
-                _mainfile << _id << "," << _title << "," << _author << "," << _quantity << "\n";
-            }
-            logger::succeed("Insert successfully!");
-            return newBook;
-        } else {
-            if (getBookByID(_id) == nullptr) {
-                if (target->id > _id) {
-                    target->left = _addBook(target->left, _id, _title, _author, _quantity);
-                } else {
-                    target->right = _addBook(target->right, _id, _title, _author, _quantity);
-                };
-            } else {
-                Book* current;
-                current = getBookByID(_id);
-                if (current->title != _title) {
-                    logger::warning("Wrong title, please try again");
-                }
-                if (current->author != _author) {
-                    logger::warning("Wrong author, please try again");
-                }
-                if (current->author == _author && current->title == _title) {
-                    current->quantity += _quantity;
-                    update_storage();
-                    logger::succeed("Update book quantity successfully!");
-                };
-            }
-        }
-
-        return target;
-    };
-
-    void _viewAll(Book* target) {
-        if (target == nullptr) {
-            return;
-        };
-        _viewAll(target->left);
-        table::content(target->id, target->title, target->author, target->quantity);
-        _viewAll(target->right);
-    }
-
-    Book* getBookByID(int id) { return _getBookByID(root, id); };
-
-    Book* _getBookByID(Book* target, int id) {
-        if (target == nullptr) {
-            return nullptr;
-        } else if (id < target->id) {
-            if (target->left == nullptr) {
-                return nullptr;
-            } else {
-                return _getBookByID(target->left, id);
-            }
-        } else if (id > target->id) {
-            if (target->right == nullptr) {
-                return nullptr;
-            } else {
-                return _getBookByID(target->right, id);
-            }
-        } else {
-            return target;
-        }
-    };
-
-    Book* getBookByTitle(std::string title) { return _getBookByTitle(root, title); }
-
-    Book* _getBookByTitle(Book* target, std::string title) {
-        if (target == nullptr) {
-            return nullptr;
-        };
-        if (_getBookByTitle(target->left, title) != nullptr) {
-            return _getBookByTitle(target->left, title);
-        } else if (target->title == title) {
-            return target;
-        } else if (_getBookByTitle(target->right, title) != nullptr) {
-            return _getBookByTitle(target->right, title);
-        } else {
-            return nullptr;
-        }
-    }
-
-    Book* getBookByAuthor(std::string author) { return _getBookByAuthor(root, author); }
-
-    Book* _getBookByAuthor(Book* target, std::string author) {
-        if (target == nullptr) {
-            return nullptr;
-        };
-        if (_getBookByAuthor(target->left, author) != nullptr) {
-            return _getBookByAuthor(target->left, author);
-        } else if (target->author == author) {
-            return target;
-        } else if (_getBookByAuthor(target->right, author) != nullptr) {
-            return _getBookByAuthor(target->right, author);
-        } else {
-            return nullptr;
-        }
-    }
+    Book* _getBookByAuthor(Book* target, std::string author);
 
     void _issueBook(Book* targetBook, std::string _br_date, std::string _rt_date,
-                    std::string _phone_nb) {
-        // Create the new record (with error handling)
-        Borrow* newBorrow = new Borrow(_br_date, _rt_date, _phone_nb);
+                    std::string _phone_nb);
 
-        if (targetBook->borrowList == nullptr) {
-            // List is empty, set the head
-            targetBook->borrowList = newBorrow;
-        } else {
-            // Traverse to the end of the list
-            Borrow* current = targetBook->borrowList;
-            while (current->next != nullptr) {
-                current = current->next;
-            }
-            // Append the new record at the end
-            current->next = newBorrow;
-        }
-    }
+    void update_borrow_rm(int id, std::string _phone_nb);
 };
 
 #endif  // STORAGE_H // End of header guard

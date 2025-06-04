@@ -85,7 +85,10 @@ void Storage::issueBook(int id, std::string _br_date, std::string _rt_date, std:
         }
         _issueBook(book, _br_date, _rt_date, _phone_nb);
 
-        logger::succeed("Issue book successfully!");
+        if (!init) {
+            logger::succeed("Issue book successfully!");
+        }
+
     } else {
         logger::warning("There are no book left in library, please try later!");
     }
@@ -271,7 +274,9 @@ Storage::Book* Storage::_addBook(Storage::Book* target, int _id, std::string _ti
 
             _mainfile.close();
         }
-        logger::succeed("Insert successfully!");
+        if (!init) {
+            logger::succeed("Insert successfully!");
+        }
         return newBook;
     } else {
         if (getBookByID(_id) == nullptr) {
@@ -336,16 +341,23 @@ Storage::Book* Storage::getBookByTitle(std::string title) { return _getBookByTit
 Storage::Book* Storage::_getBookByTitle(Book* target, std::string title) {
     if (target == nullptr) {
         return nullptr;
-    };
-    if (_getBookByTitle(target->left, title) != nullptr) {
-        return _getBookByTitle(target->left, title);
-    } else if (target->title == title) {
-        return target;
-    } else if (_getBookByTitle(target->right, title) != nullptr) {
-        return _getBookByTitle(target->right, title);
-    } else {
-        return nullptr;
     }
+
+    if (target->title == title) {
+        return target;
+    }
+
+    Book* found_on_left = _getBookByTitle(target->left, title);
+    if (found_on_left != nullptr) {
+        return found_on_left;
+    }
+
+    Book* found_on_right = _getBookByTitle(target->right, title);
+    if (found_on_right != nullptr) {
+        return found_on_right;
+    }
+
+    return nullptr;
 }
 
 Storage::Book* Storage::getBookByAuthor(std::string author) {
@@ -355,16 +367,23 @@ Storage::Book* Storage::getBookByAuthor(std::string author) {
 Storage::Book* Storage::_getBookByAuthor(Book* target, std::string author) {
     if (target == nullptr) {
         return nullptr;
-    };
-    if (_getBookByAuthor(target->left, author) != nullptr) {
-        return _getBookByAuthor(target->left, author);
-    } else if (target->author == author) {
-        return target;
-    } else if (_getBookByAuthor(target->right, author) != nullptr) {
-        return _getBookByAuthor(target->right, author);
-    } else {
-        return nullptr;
     }
+
+    if (target->author == author) {
+        return target;
+    }
+
+    Book* found_on_left = _getBookByAuthor(target->left, author);
+    if (found_on_left != nullptr) {
+        return found_on_left;
+    }
+
+    Book* found_on_right = _getBookByAuthor(target->right, author);
+    if (found_on_right != nullptr) {
+        return found_on_right;
+    }
+
+    return nullptr;
 }
 
 void Storage::_issueBook(Book* targetBook, std::string _br_date, std::string _rt_date,
@@ -418,8 +437,6 @@ void Storage::update_borrow_rm(int id, std::string _phone_nb) {
 
     _tempfile << "id,borrow date,return date,phone number" << "\n";
 
-    logger::critical("Update borrow rm");
-
     std::vector<std::string> row;
     std::string line, word;
 
@@ -441,10 +458,8 @@ void Storage::update_borrow_rm(int id, std::string _phone_nb) {
 
         if (id != std::stoi(row[0]) || _phone_nb != row[3]) {
             for (int i = 0; i < (row.size() - 1); i++) {
-                std::cout << row[i] << " ";
                 _tempfile << row[i] << ",";
             }
-            std::cout << row[row.size() - 1] << "\n";
             _tempfile << row[row.size() - 1] << "\n";
         } else {
             found_book = true;

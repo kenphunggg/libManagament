@@ -1,11 +1,11 @@
 id,title,author,quantity
-1,To Kill a Mockingbird,Harper Lee,46
+1,To Kill a Mockingbird,Harper Lee,48
 2,1984,George Orwell,30
 3,Pride and Prejudice,Jane Austen,18
 4,The Great Gatsby,F. Scott Fitzgerald,22
 5,Harry Potter and the Sorcerer's Stone,J.K. Rowling,45
 6,The Hobbit,J.R.R. Tolkien,35
-7,The Catcher in the Rye,J.D. Salinger,15
+7,The Catcher in the Rye,J.D. Salinger,16
 8,The Lord of the Rings,J.R.R. Tolkien,28
 9,Fahrenheit 451,Ray Bradbury,20
 10,Jane Eyre,Charlotte Bronte,12
@@ -16,12 +16,12 @@ id,title,author,quantity
 15,Gone with the Wind,Margaret Mitchell,14
 16,The Alchemist,Paulo Coelho,38
 17,Moby Dick,Herman Melville,10
-18,The Adventures of Huckleberry Finn,Mark Twain,19
+18,The Adventures of Huckleberry Finn,Mark Twain,20
 19,Little Women,Louisa May Alcott,23
 20,The Shining,Stephen King,31
 21,The Da Vinci Code,Dan Brown,27
 22,The Hunger Games,Suzanne Collins,40
-23,The Girl with the Dragon Tattoo,Stieg Larsson,24
+23,The Girl with the Dragon Tattoo,Stieg Larsson,25
 24,The Kite Runner,Khaled Hosseini,29
 25,Where the Crawdads Sing,Delia Owens,36
 26,The Help,Kathryn Stockett,17

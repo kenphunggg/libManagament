@@ -28,13 +28,13 @@ void search_book(Storage* bookstorage) {
     } else if (search_action == 2) {  // --- 3.2. Search by title ---
         std::string title;
         std::cout << ">>> Please insert book title >>> ";
-        std::cin >> title;
+        std::getline(std::cin >> std::ws, title);
         bookstorage->searchBookByTitle(title);
 
     } else if (search_action == 3) {  // --- 3.3. Search by author ---
         std::string author;
         std::cout << ">>> Please insert book author >>> ";
-        std::cin >> author;
+        std::getline(std::cin >> std::ws, author);
         bookstorage->searchBookByAuthor(author);
 
     } else if (search_action == 0) {  // --- 3.0. Back ---
